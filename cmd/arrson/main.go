@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 
-	"github.com/jsclayton/arr-utils/cmd/arr/cmd"
+	"github.com/jsclayton/arrson/cmd/arrson/cmd"
 )
 
 func main() {

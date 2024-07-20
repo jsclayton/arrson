@@ -3,8 +3,8 @@ package cmd
 import (
 	"context"
 
-	"github.com/jsclayton/arr-utils/cmd/arr/cmd/radarr"
-	"github.com/jsclayton/arr-utils/cmd/arr/cmd/sonarr"
+	"github.com/jsclayton/arrson/cmd/arrson/cmd/radarr"
+	"github.com/jsclayton/arrson/cmd/arrson/cmd/sonarr"
 	"github.com/spf13/cobra"
 )
 

@@ -1,9 +1,9 @@
-A toolkit for the arrs
+A JSON toolkit for the *arr apps
 
 # Recipes
 
 ## Delete movies from on instance that exist in another
 
 ```bash
-arr r -u "http://:{API_KEY_1}@{URL_1}" list | jq .tmdbId | xargs -n 1 arr r -u "https//:{API_KEY_2}@{URL_2}" delete -y
+arrson r -u "http://:{API_KEY_1}@{URL_1}" list | jq .tmdbId | xargs -n 1 arrson r -u "https//:{API_KEY_2}@{URL_2}" delete -y
 ```
