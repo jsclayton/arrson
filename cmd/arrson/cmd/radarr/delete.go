@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/manifoldco/promptui"
+	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )
 
@@ -40,18 +40,20 @@ var deleteCmd = &cobra.Command{
 			return fmt.Errorf("Movie not found (TMDB ID: %d)", tmdbID)
 		}
 
-		prompt := promptui.Prompt{
-			Label:     fmt.Sprintf("Delete movie \"%s\"", movies[0].Title),
-			IsConfirm: true,
-		}
-
 		if !confirmDelete {
-			_, err = prompt.Run()
+			userConfirmed, err := pterm.DefaultInteractiveConfirm.
+				Show(fmt.Sprintf("Delete movie \"%s\"", movies[0].Title))
 			if err != nil {
+				fmt.Println(err)
+				return err
+			}
+			if !userConfirmed {
+				fmt.Println("Aborted")
 				return nil
 			}
 		}
 
+		fmt.Println(fmt.Sprintf("Deleting movie: %s", movies[0].Title))
 		err = client.DeleteMovieContext(cmd.Context(), movies[0].ID, true, true)
 		if err != nil {
 			fmt.Println(fmt.Sprintf("Failed to delete movie: %s", err))
