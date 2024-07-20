@@ -54,9 +54,10 @@ var deleteCmd = &cobra.Command{
 
 		err = client.DeleteMovieContext(cmd.Context(), movies[0].ID, true, true)
 		if err != nil {
-			return err
+			fmt.Println(fmt.Sprintf("Failed to delete movie: %s", err))
 		}
 
+		fmt.Println(fmt.Sprintf("Deleted movie: %s", movies[0].Title))
 		return nil
 	},
 }
