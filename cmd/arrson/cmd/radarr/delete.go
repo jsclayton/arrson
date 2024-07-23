@@ -1,11 +1,15 @@
 package radarr
 
 import (
+	"bufio"
+	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
+	"golift.io/starr/radarr"
 )
 
 func init() {
@@ -21,9 +25,24 @@ var deleteCmd = &cobra.Command{
 	Short: "Delete a movie from Radarr",
 	Args:  cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		client, err := newClient()
-		if err != nil {
-			return err
+		if len(args) == 1 && args[0] == "-" {
+			stdin := cmd.InOrStdin()
+			scanner := bufio.NewScanner(stdin)
+			for scanner.Scan() {
+				var movie *radarr.Movie
+				err := json.Unmarshal(scanner.Bytes(), &movie)
+				if err != nil {
+					return err
+				}
+				if movie == nil {
+					return fmt.Errorf("Failed to unmarshal movie")
+				}
+				_, err = deleteMovie(cmd.Context(), movie.TmdbID)
+				if err != nil {
+					return err
+				}
+			}
+			return nil
 		}
 
 		var tmdbID int64 = -1
@@ -31,35 +50,44 @@ var deleteCmd = &cobra.Command{
 			tmdbID = int64(intVal)
 		}
 
-		movies, err := client.GetMovieContext(cmd.Context(), tmdbID)
+		_, err := deleteMovie(cmd.Context(), tmdbID)
 		if err != nil {
 			return err
 		}
 
-		if len(movies) == 0 {
-			return fmt.Errorf("Movie not found (TMDB ID: %d)", tmdbID)
-		}
-
-		if !confirmDelete {
-			userConfirmed, err := pterm.DefaultInteractiveConfirm.
-				Show(fmt.Sprintf("Delete movie \"%s\"", movies[0].Title))
-			if err != nil {
-				fmt.Println(err)
-				return err
-			}
-			if !userConfirmed {
-				fmt.Println("Aborted")
-				return nil
-			}
-		}
-
-		fmt.Println(fmt.Sprintf("Deleting movie: %s", movies[0].Title))
-		err = client.DeleteMovieContext(cmd.Context(), movies[0].ID, true, true)
-		if err != nil {
-			fmt.Println(fmt.Sprintf("Failed to delete movie: %s", err))
-		}
-
-		fmt.Println(fmt.Sprintf("Deleted movie: %s", movies[0].Title))
 		return nil
 	},
+}
+
+func deleteMovie(ctx context.Context, tmdbID int64) (bool, error) {
+	movies, err := client.GetMovieContext(ctx, tmdbID)
+	if err != nil {
+		return false, err
+	}
+
+	if len(movies) == 0 {
+		return false, nil
+	}
+
+	if !confirmDelete {
+		userConfirmed, err := pterm.DefaultInteractiveConfirm.
+			Show(fmt.Sprintf("Delete movie \"%s\"", movies[0].Title))
+		if err != nil {
+			fmt.Println(err)
+			return false, err
+		}
+		if !userConfirmed {
+			fmt.Println("Aborted")
+			return false, nil
+		}
+	}
+
+	fmt.Println(fmt.Sprintf("Deleting movie: %s", movies[0].Title))
+	err = client.DeleteMovieContext(ctx, movies[0].ID, true, true)
+	if err != nil {
+		fmt.Println(fmt.Sprintf("Failed to delete movie: %s", err))
+	}
+
+	fmt.Println(fmt.Sprintf("Deleted movie: %s", movies[0].Title))
+	return true, nil
 }

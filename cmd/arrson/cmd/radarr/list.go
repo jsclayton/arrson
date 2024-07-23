@@ -11,11 +11,6 @@ var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List movies in Radarr",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		client, err := newClient()
-		if err != nil {
-			return err
-		}
-
 		movies, err := client.GetMovieContext(cmd.Context(), 0)
 		if err != nil {
 			return err

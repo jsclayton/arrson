@@ -19,12 +19,18 @@ func init() {
 
 var (
 	rawURL string
+	client *radarr.Radarr
 )
 
 var RadarrCmd = &cobra.Command{
 	Use:     "radarr",
 	Aliases: []string{"r"},
 	Short:   "Radarr utilities",
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		var err error
+		client, err = newClient()
+		return err
+	},
 }
 
 func newClient() (*radarr.Radarr, error) {
